@@ -1,0 +1,31 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: false
+
+
+  #Symfony\Component\Messenger\Command\StopWorkersCommand:
+  #  tags:
+  #    - name: 'console.command'
+  #      command: 'messenger:stop-workers'
+  #      schedulable: false
+
+  Symfony\Component\Messenger\Command\DebugCommand:
+    tags:
+      - name: 'console.command'
+        command: 'messenger:debug'
+        schedulable: false
+    arguments:
+      $mapping: []
+
+  Symfony\Component\Messenger\RoutableMessageBus:
+    public: true
+
+  Symfony\Component\Messenger\Command\ConsumeMessagesCommand:
+    tags:
+      - name: 'console.command'
+        command: 'messenger:consume'
+        schedulable: false
+    arguments:
+      $eventDispatcher: '@Psr\EventDispatcher\EventDispatcherInterface'

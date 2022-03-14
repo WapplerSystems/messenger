@@ -1,0 +1,38 @@
+{
+	"name": "wapplersystems/messenger",
+	"type": "typo3-cms-extension",
+	"description": "Default symfony messenger commands",
+	"keywords": [
+		"TYPO3",
+		"extension"
+	],
+	"homepage": "https://wappler.systems",
+	"authors": [
+		{
+			"name": "Sven Wappler",
+			"role": "Developer",
+			"homepage": "https://wappler.systems"
+		}
+	],
+	"license": [
+		"GPL-2.0+"
+	],
+	"require": {
+		"typo3/cms-core": "^11.0",
+		"symfony/messenger": "^6.0"
+	},
+	"suggest": {
+	},
+	"require-dev": {
+	},
+	"autoload": {
+		"psr-4": {
+			"WapplerSystems\\Messenger\\": "Classes"
+		}
+	},
+	"extra": {
+		"typo3/cms": {
+			"extension-key": "messenger"
+		}
+	}
+}
