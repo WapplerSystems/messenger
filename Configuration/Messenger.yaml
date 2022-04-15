@@ -1,0 +1,16 @@
+
+transports: []
+routing: []
+enabled: true
+serializer:
+  default_serializer: messenger.transport.native_php_serializer
+  symfony_serializer:
+    format: json
+    context: {  }
+failure_transport: null
+reset_on_message: null
+default_bus: null
+buses:
+  messenger.bus.default:
+    default_middleware: true
+    middleware: {  }

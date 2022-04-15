@@ -5,27 +5,62 @@ services:
     public: false
 
 
-  #Symfony\Component\Messenger\Command\StopWorkersCommand:
-  #  tags:
-  #    - name: 'console.command'
-  #      command: 'messenger:stop-workers'
-  #      schedulable: false
-
-  Symfony\Component\Messenger\Command\DebugCommand:
+  console.command.messenger_stop_workers:
+    class: Symfony\Component\Messenger\Command\StopWorkersCommand
     tags:
       - name: 'console.command'
-        command: 'messenger:debug'
+        command: 'messenger:stop-workers'
         schedulable: false
-    arguments:
-      $mapping: []
+        description: 'Stop workers after their current message'
+    arguments: ['@cache.messenger.restart_workers_signal']
 
-  Symfony\Component\Messenger\RoutableMessageBus:
-    public: true
+  console.command.messenger_debug:
+    class: Symfony\Component\Messenger\Command\DebugCommand
+    tags:
+      - name: 'console.command'
+        command: 'debug:messenger'
+        schedulable: false
+        description: 'List messages you can dispatch using the message buses'
+    arguments: ['']
 
-  Symfony\Component\Messenger\Command\ConsumeMessagesCommand:
+  console.command.messenger_setup_transports:
+    class: Symfony\Component\Messenger\Command\SetupTransportsCommand
+    tags:
+      - name: 'console.command'
+        command: 'messenger:setup-transports'
+        description: 'Prepare the required infrastructure for the transport'
+    arguments: ['@messenger.receiver_locator','Receiver names']
+
+  console.command.messenger_consume_messages:
+    class: Symfony\Component\Messenger\Command\ConsumeMessagesCommand
     tags:
       - name: 'console.command'
         command: 'messenger:consume'
         schedulable: false
-    arguments:
-      $eventDispatcher: '@Psr\EventDispatcher\EventDispatcherInterface'
+        description: 'Consume messages'
+    arguments: ['Routable message bus','@messenger.receiver_locator','@event_dispatcher',null,{},null,{}]
+
+  console.command.messenger_failed_messages_retry:
+    class: Symfony\Component\Messenger\Command\FailedMessagesRetryCommand
+    tags:
+      - name: 'console.command'
+        command: 'messenger:failed:retry'
+        schedulable: false
+        description: 'Retry one or more messages from the failure transport'
+    arguments: ['Default failure receiver name','Receivers','@messenger.routable_message_bus','@event_dispatcher','@logger']
+
+  console.command.messenger_failed_messages_show:
+    class: Symfony\Component\Messenger\Command\FailedMessagesShowCommand
+    tags:
+      - name: 'console.command'
+        command: 'messenger:failed:show'
+        description: 'Show one or more messages from the failure transport'
+    arguments: ['Default failure receiver name','Receivers']
+
+  console.command.messenger_failed_messages_remove:
+    class: Symfony\Component\Messenger\Command\FailedMessagesRemoveCommand
+    tags:
+      - name: 'console.command'
+        command: 'messenger:failed:remove'
+        description: 'Remove given messages from the failure transport'
+    arguments: ['Default failure receiver name','Receivers']
