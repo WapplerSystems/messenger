@@ -47,7 +47,7 @@ services:
         command: 'messenger:failed:retry'
         schedulable: false
         description: 'Retry one or more messages from the failure transport'
-    arguments: ['Default failure receiver name','Receivers','@messenger.routable_message_bus','@event_dispatcher','@logger']
+    arguments: ['Default failure receiver name','Receivers','@messenger.routable_message_bus','@event_dispatcher',null]
 
   console.command.messenger_failed_messages_show:
     class: Symfony\Component\Messenger\Command\FailedMessagesShowCommand
