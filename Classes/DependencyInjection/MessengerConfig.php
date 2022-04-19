@@ -18,6 +18,9 @@ use Symfony\Component\Messenger\Transport\TransportInterface;
 use TYPO3\CMS\Core\Configuration\Loader\YamlFileLoader;
 use TYPO3\CMS\Core\Package\PackageManager;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
+use WapplerSystems\Messenger\Command\FailedMessagesRemoveDummyCommand;
+use WapplerSystems\Messenger\Command\FailedMessagesRetryDummyCommand;
+use WapplerSystems\Messenger\Command\FailedMessagesShowDummyCommand;
 
 class MessengerConfig implements CompilerPassInterface
 {
@@ -223,10 +226,17 @@ class MessengerConfig implements CompilerPassInterface
             $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
                 ->replaceArgument(0, $failureTransportsByTransportNameServiceLocator);
         } else {
+            /*
+             * TODO: Find better solution. The removing will break scheduler
             $container->removeDefinition('messenger.failure.send_failed_message_to_failure_transport_listener');
             $container->removeDefinition('console.command.messenger_failed_messages_retry');
             $container->removeDefinition('console.command.messenger_failed_messages_show');
             $container->removeDefinition('console.command.messenger_failed_messages_remove');
+            */
+            // Workaround
+            $container->getDefinition('console.command.messenger_failed_messages_retry')->setClass(FailedMessagesRetryDummyCommand::class)->replaceArgument(0, null);
+            $container->getDefinition('console.command.messenger_failed_messages_show')->setClass(FailedMessagesShowDummyCommand::class);
+            $container->getDefinition('console.command.messenger_failed_messages_remove')->setClass(FailedMessagesRemoveDummyCommand::class);
         }
 
         if (false === $config['reset_on_message']) {
