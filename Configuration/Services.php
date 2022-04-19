@@ -1,6 +1,7 @@
 <?php
 
 declare(strict_types=1);
+
 namespace TYPO3\CMS\Core;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -14,7 +15,6 @@ use WapplerSystems\Messenger\DependencyInjection\MessengerConfig;
 
 return static function (ContainerConfigurator $container, ContainerBuilder $containerBuilder) {
 
-    //if ($container->services()->)
 
     $container->services()->set('event_dispatcher', EventDispatcher::class)
         ->public()
