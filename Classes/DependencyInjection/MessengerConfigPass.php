@@ -2,56 +2,34 @@
 
 namespace WapplerSystems\Messenger\DependencyInjection;
 
-use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
-use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
-use TYPO3\CMS\Core\Configuration\Loader\YamlFileLoader;
-use TYPO3\CMS\Core\Package\PackageManager;
-use TYPO3\CMS\Core\Utility\GeneralUtility;
 use WapplerSystems\Messenger\Command\FailedMessagesRemoveDummyCommand;
 use WapplerSystems\Messenger\Command\FailedMessagesRetryDummyCommand;
 use WapplerSystems\Messenger\Command\FailedMessagesShowDummyCommand;
+use WapplerSystems\Messenger\Configuration\MessengerConfiguration;
 
-class MessengerConfig implements CompilerPassInterface
+class MessengerConfigPass implements CompilerPassInterface
 {
 
     public function process(ContainerBuilder $container)
     {
 
-
         if (!interface_exists(MessageBusInterface::class)) {
             throw new LogicException('Messenger support cannot be enabled as the Messenger component is not installed. Try running "composer require symfony/messenger".');
         }
 
+        $config = MessengerConfiguration::getInstance()->getConfig();
 
-        $loader = new PhpFileLoader($container, new FileLocator(\dirname(__DIR__).'/../Configuration/Configurator'));
-        $loader->load('messenger_patch.php');
-        $loader->load('messenger.php');
-
-
-        $fileLoader = GeneralUtility::makeInstance(YamlFileLoader::class);
-        $config = $fileLoader->load('EXT:messenger/Configuration/Messenger.yaml');
-
-        $packageManager = GeneralUtility::makeInstance(PackageManager::class);
-        foreach ($packageManager->getActivePackages() as $package) {
-            if ($package->getPackageKey() === 'messenger') continue;
-            $extYamlPath = $package->getPackagePath() . 'Configuration/Messenger.yaml';
-            if (@file_exists($extYamlPath)) {
-                $extConfig = $fileLoader->load($extYamlPath);
-                $config = array_merge_recursive($config,$extConfig);
-            }
-
-        }
 
         if (null === $config['default_bus'] && 1 === \count($config['buses'])) {
             $config['default_bus'] = key($config['buses']);

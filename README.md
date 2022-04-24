@@ -18,7 +18,24 @@ This extension makes the following commands available:
 
 ## Integration guide
 
-Here is an example which uses a sql table
+Here is an example which uses a sql table. Create these files in your own extension:
+
+Configuration/Services.php
+```
+namespace TYPO3\CMS\Core;
+
+use Symfony\Component\DependencyInjection\Compiler\PassConfig;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use WapplerSystems\Messenger\DependencyInjection\MessengerExtensionConfigPass;
+
+
+return static function (ContainerConfigurator $container, ContainerBuilder $containerBuilder) {
+
+    $containerBuilder->addCompilerPass(new MessengerExtensionConfigPass('<your_ext_key>'),PassConfig::TYPE_BEFORE_OPTIMIZATION, 91);
+
+};
+```
 
 Configuration/Services.yaml
 ```
@@ -37,6 +54,8 @@ Configuration/Services.yaml
       $bus: '@messenger.bus.default'
 ```
 
+
+
 ext_tables.sql
 ```
 CREATE TABLE tx_yourext_foobar
@@ -50,8 +69,6 @@ CREATE TABLE tx_yourext_foobar
 	PRIMARY KEY (uid)
 );
 ```
-
-Create an Messenger.yaml in your_ext/Configuration/ dir.
 
 Configuration/Messenger.yaml
 ```
@@ -110,7 +127,7 @@ class FoobarHandler implements MessageHandlerInterface {
 {
     public function __invoke(Foobar $foobar)
     {
-      
+
     }
 }
 ```
@@ -126,7 +143,7 @@ class FoobarService
     {
         $this->bus = $bus;
     }
-    
+
     public function createJob() {
         $foobar = new Foobar();
         $this->bus->dispatch($foobar);
