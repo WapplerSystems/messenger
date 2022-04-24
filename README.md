@@ -18,7 +18,11 @@ This extension makes the following commands available:
 
 ## Integration guide
 
-Here is an example which uses a sql table. Create these files in your own extension:
+Here is an example which uses a sql table.
+
+Require the `wapplersystems/messenger` package in your composer.json.
+
+Create these files in your own extension:
 
 Configuration/Services.php
 ```
