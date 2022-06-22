@@ -7,6 +7,7 @@ namespace TYPO3\CMS\Core;
 use Symfony\Component\DependencyInjection\Compiler\PassConfig;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\EventDispatcher\DependencyInjection\RegisterListenersPass;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface as EventDispatcherInterfaceComponentAlias;
 use Symfony\Component\Messenger\DependencyInjection\MessengerPass;
@@ -24,7 +25,7 @@ return static function (ContainerConfigurator $container, ContainerBuilder $cont
         ->alias(EventDispatcherInterfaceComponentAlias::class, 'event_dispatcher')
         ->alias(EventDispatcherInterface::class, 'event_dispatcher');
 
-
+    $containerBuilder->addCompilerPass(new RegisterListenersPass(), PassConfig::TYPE_BEFORE_REMOVING);
     $containerBuilder->addCompilerPass(new MessengerBaseConfigPass(),PassConfig::TYPE_BEFORE_OPTIMIZATION, 900);
     $containerBuilder->addCompilerPass(new MessengerConfigPass());
     $containerBuilder->addCompilerPass(new MessengerPass());

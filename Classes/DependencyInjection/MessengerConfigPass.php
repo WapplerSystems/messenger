@@ -192,6 +192,11 @@ class MessengerConfigPass implements CompilerPassInterface
         $container->getDefinition('messenger.retry_strategy_locator')
             ->replaceArgument(0, $transportRetryReferences);
 
+
+        $failureTransportsByTransportNameServiceLocator = ServiceLocatorTagPass::register($container, $failureTransportReferencesByTransportName);
+        $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
+            ->replaceArgument(0, $failureTransportsByTransportNameServiceLocator);
+
         if (\count($failureTransports) > 0) {
             $container->getDefinition('console.command.messenger_failed_messages_retry')
                 ->replaceArgument(0, $config['failure_transport']);
@@ -199,10 +204,6 @@ class MessengerConfigPass implements CompilerPassInterface
                 ->replaceArgument(0, $config['failure_transport']);
             $container->getDefinition('console.command.messenger_failed_messages_remove')
                 ->replaceArgument(0, $config['failure_transport']);
-
-            $failureTransportsByTransportNameServiceLocator = ServiceLocatorTagPass::register($container, $failureTransportReferencesByTransportName);
-            $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
-                ->replaceArgument(0, $failureTransportsByTransportNameServiceLocator);
         } else {
             /*
              * TODO: Find better solution. The removing will break scheduler
