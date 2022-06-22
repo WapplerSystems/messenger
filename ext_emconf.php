@@ -12,9 +12,7 @@ $EM_CONF[$_EXTKEY] = [
     ],
     'state' => 'stable',
     'clearCacheOnLoad' => false,
-    'author' => 'Thorben Nissen',
-    'author_email' => 'thorben.nissen@clubdrei.com',
-    'author_company' => 'clubdrei.com Medienagentur GmbH',
+    'author' => 'Sven Wappler',
     'autoload' => [
         'psr-4' => [
             'WapplerSystems\\Messenger\\' => 'Classes',
