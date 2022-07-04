@@ -130,10 +130,10 @@ class MessengerConfigPass implements CompilerPassInterface
                 $retryServiceId = sprintf('messenger.retry.multiplier_retry_strategy.%s', $name);
                 $retryDefinition = new ChildDefinition('messenger.retry.abstract_multiplier_retry_strategy');
                 $retryDefinition
-                    ->replaceArgument(0, $transport['retry_strategy']['max_retries'])
-                    ->replaceArgument(1, $transport['retry_strategy']['delay'])
-                    ->replaceArgument(2, $transport['retry_strategy']['multiplier'])
-                    ->replaceArgument(3, $transport['retry_strategy']['max_delay']);
+                    ->replaceArgument(0, $transport['retry_strategy']['max_retries'] ?? 3)
+                    ->replaceArgument(1, $transport['retry_strategy']['delay'] ?? 1000)
+                    ->replaceArgument(2, $transport['retry_strategy']['multiplier'] ?? 2)
+                    ->replaceArgument(3, $transport['retry_strategy']['max_delay'] ?? 0);
                 $container->setDefinition($retryServiceId, $retryDefinition);
 
                 $transportRetryReferences[$name] = new Reference($retryServiceId);
