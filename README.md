@@ -43,15 +43,6 @@ return static function (ContainerConfigurator $container, ContainerBuilder $cont
 
 Configuration/Services.yaml
 ```
-  Vendor\YourExt\Messenger\Transport\FoobarTransportFactory:
-    tags:
-      - name: 'messenger.transport_factory'
-
-  Vendor\YourExt\Messenger\FoobarHandler:
-    tags:
-      - name: messenger.message_handler
-        handles: Vendor\YourExt\Job\Foobar
-
   Vendor\YourExt\Service\FoobarService:
     public: true
     arguments:

@@ -9,9 +9,11 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\Handler\MessageHandlerInterface;
 use Symfony\Component\Messenger\MessageBus;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
+use Symfony\Component\Messenger\Transport\TransportFactoryInterface;
 use Symfony\Component\Messenger\Transport\TransportInterface;
 use WapplerSystems\Messenger\Command\FailedMessagesRemoveDummyCommand;
 use WapplerSystems\Messenger\Command\FailedMessagesRetryDummyCommand;
@@ -27,6 +29,11 @@ class MessengerConfigPass implements CompilerPassInterface
         if (!interface_exists(MessageBusInterface::class)) {
             throw new LogicException('Messenger support cannot be enabled as the Messenger component is not installed. Try running "composer require symfony/messenger".');
         }
+
+        $container->registerForAutoconfiguration(MessageHandlerInterface::class)
+                  ->addTag('messenger.message_handler');
+        $container->registerForAutoconfiguration(TransportFactoryInterface::class)
+                  ->addTag('messenger.transport_factory');
 
         $config = MessengerConfiguration::getInstance()->getConfig();
 
