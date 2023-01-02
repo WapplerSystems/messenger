@@ -20,7 +20,7 @@ return static function (ContainerConfigurator $container) {
             ])
             ->call('setLogger', [service('logger')->ignoreOnInvalid()])
             ->tag('cache.pool', ['clearer' => 'cache.default_clearer', 'reset' => 'reset'])
-            ->tag('monolog.logger', ['channel' => 'cache'])
+            ->tag('psr.logger_aware')
 
         ->set('cache.app')
             ->parent('cache.adapter.filesystem')
