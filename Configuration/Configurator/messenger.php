@@ -28,7 +28,6 @@ use Symfony\Component\Messenger\Middleware\RejectRedeliveredMessageMiddleware;
 use Symfony\Component\Messenger\Middleware\RouterContextMiddleware;
 use Symfony\Component\Messenger\Middleware\SendMessageMiddleware;
 use Symfony\Component\Messenger\Middleware\TraceableMiddleware;
-use Symfony\Component\Messenger\Middleware\ValidationMiddleware;
 use Symfony\Component\Messenger\Retry\MultiplierRetryStrategy;
 use Symfony\Component\Messenger\RoutableMessageBus;
 use Symfony\Component\Messenger\Transport\InMemoryTransportFactory;
@@ -39,6 +38,7 @@ use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransportFactory;
 use Symfony\Component\Messenger\Transport\TransportFactory;
+use WapplerSystems\Messenger\Middleware\ValidationMiddleware;
 use TYPO3\CMS\Core\Log\LogManager;
 
 return static function (ContainerConfigurator $container) {
