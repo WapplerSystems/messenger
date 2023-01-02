@@ -39,10 +39,17 @@ use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransportFactory;
 use Symfony\Component\Messenger\Transport\TransportFactory;
+use TYPO3\CMS\Core\Log\LogManager;
 
 return static function (ContainerConfigurator $container) {
+
     $container->services()
         ->alias(SerializerInterface::class, 'messenger.default_serializer')
+
+        // Logger
+        ->set('messenger.logger')
+        ->factory([service(LogManager::class), 'getLogger'])
+        ->share(false)
 
         // Asynchronous
         ->set('messenger.senders_locator', SendersLocator::class)
@@ -55,8 +62,7 @@ return static function (ContainerConfigurator $container) {
                 service('messenger.senders_locator'),
                 service('event_dispatcher'),
             ])
-            ->call('setLogger', [service('logger')->ignoreOnInvalid()])
-            ->tag('monolog.logger', ['channel' => 'messenger'])
+            ->tag('psr.logger_aware')
 
         // Message encoding/decoding
         ->set('messenger.transport.symfony_serializer', Serializer::class)
@@ -77,8 +83,7 @@ return static function (ContainerConfigurator $container) {
             ->args([
                 abstract_arg('bus handler resolver'),
             ])
-            ->tag('monolog.logger', ['channel' => 'messenger'])
-            ->call('setLogger', [service('logger')->ignoreOnInvalid()])
+            ->tag('psr.logger_aware')
 
         ->set('messenger.middleware.add_bus_name_stamp_middleware', AddBusNameStampMiddleware::class)
             ->abstract()
@@ -149,11 +154,10 @@ return static function (ContainerConfigurator $container) {
             ->args([
                 abstract_arg('senders service locator'),
                 service('messenger.retry_strategy_locator'),
-                service('logger')->ignoreOnInvalid(),
+                service('messenger.logger'),
                 service('event_dispatcher'),
             ])
             ->tag('kernel.event_subscriber')
-            ->tag('monolog.logger', ['channel' => 'messenger'])
 
         ->set('messenger.failure.add_error_details_stamp_listener', AddErrorDetailsStampListener::class)
             ->tag('kernel.event_subscriber')
@@ -161,10 +165,9 @@ return static function (ContainerConfigurator $container) {
         ->set('messenger.failure.send_failed_message_to_failure_transport_listener', SendFailedMessageToFailureTransportListener::class)
             ->args([
                 abstract_arg('failure transports'),
-                service('logger')->ignoreOnInvalid(),
+                service('messenger.logger'),
             ])
             ->tag('kernel.event_subscriber')
-            ->tag('monolog.logger', ['channel' => 'messenger'])
 
         ->set('messenger.listener.dispatch_pcntl_signal_listener', DispatchPcntlSignalListener::class)
             ->tag('kernel.event_subscriber')
@@ -172,14 +175,13 @@ return static function (ContainerConfigurator $container) {
         ->set('messenger.listener.stop_worker_on_restart_signal_listener', StopWorkerOnRestartSignalListener::class)
             ->args([
                 service('cache.messenger.restart_workers_signal'),
-                service('logger')->ignoreOnInvalid(),
+                service('messenger.logger'),
             ])
             ->tag('kernel.event_subscriber')
-            ->tag('monolog.logger', ['channel' => 'messenger'])
 
         ->set('messenger.listener.stop_worker_on_sigterm_signal_listener', StopWorkerOnSigtermSignalListener::class)
             ->args([
-                service('logger')->ignoreOnInvalid(),
+                service('messenger.logger'),
             ])
             ->tag('kernel.event_subscriber')
 
