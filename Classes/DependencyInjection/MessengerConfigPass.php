@@ -1,5 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
+/*
+ * This file is part of the "messenger" Extension for TYPO3 CMS.
+ *
+ * For the full copyright and license information, please read the
+ * LICENSE.txt file that was distributed with this source code.
+ */
+
 namespace WapplerSystems\Messenger\DependencyInjection;
 
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -22,21 +31,20 @@ use WapplerSystems\Messenger\Configuration\MessengerConfiguration;
 
 class MessengerConfigPass implements CompilerPassInterface
 {
-
     public function process(ContainerBuilder $container)
     {
-
-        if (!interface_exists(MessageBusInterface::class)) {
-            throw new LogicException('Messenger support cannot be enabled as the Messenger component is not installed. Try running "composer require symfony/messenger".');
+        if (! interface_exists(MessageBusInterface::class)) {
+            throw new LogicException(
+                'Messenger support cannot be enabled as the Messenger component is not installed. Try running "composer require symfony/messenger".'
+            );
         }
 
         $container->registerForAutoconfiguration(MessageHandlerInterface::class)
-                  ->addTag('messenger.message_handler');
+            ->addTag('messenger.message_handler');
         $container->registerForAutoconfiguration(TransportFactoryInterface::class)
-                  ->addTag('messenger.transport_factory');
+            ->addTag('messenger.transport_factory');
 
         $config = MessengerConfiguration::getInstance()->getConfig();
-
 
         if (null === $config['default_bus'] && 1 === \count($config['buses'])) {
             $config['default_bus'] = key($config['buses']);
@@ -44,14 +52,26 @@ class MessengerConfigPass implements CompilerPassInterface
 
         $defaultMiddleware = [
             'before' => [
-                ['id' => 'add_bus_name_stamp_middleware'],
-                ['id' => 'reject_redelivered_message_middleware'],
-                ['id' => 'dispatch_after_current_bus'],
-                ['id' => 'failed_message_processing_middleware'],
+                [
+                    'id' => 'add_bus_name_stamp_middleware',
+                ],
+                [
+                    'id' => 'reject_redelivered_message_middleware',
+                ],
+                [
+                    'id' => 'dispatch_after_current_bus',
+                ],
+                [
+                    'id' => 'failed_message_processing_middleware',
+                ],
             ],
             'after' => [
-                ['id' => 'send_message'],
-                ['id' => 'handle_message'],
+                [
+                    'id' => 'send_message',
+                ],
+                [
+                    'id' => 'handle_message',
+                ],
             ],
         ];
         foreach ($config['buses'] as $busId => $bus) {
@@ -70,11 +90,12 @@ class MessengerConfigPass implements CompilerPassInterface
                 $middleware = array_merge($defaultMiddleware['before'], $middleware, $defaultMiddleware['after']);
             }
 
-            $container->setParameter($busId.'.middleware', $middleware);
+            $container->setParameter($busId . '.middleware', $middleware);
             $container->register($busId, MessageBus::class)->addArgument([])->addTag('messenger.bus');
 
             if ($busId === $config['default_bus']) {
-                $container->setAlias('messenger.default_bus', $busId)->setPublic(true);
+                $container->setAlias('messenger.default_bus', $busId)
+                    ->setPublic(true);
                 $container->setAlias(MessageBusInterface::class, $busId);
             } else {
                 $container->registerAliasForArgument($busId, MessageBusInterface::class);
@@ -97,11 +118,17 @@ class MessengerConfigPass implements CompilerPassInterface
 
         $failureTransports = [];
         if ($config['failure_transport']) {
-            if (!isset($config['transports'][$config['failure_transport']])) {
-                throw new LogicException(sprintf('Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.', $config['failure_transport']));
+            if (! isset($config['transports'][$config['failure_transport']])) {
+                throw new LogicException(sprintf(
+                    'Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.',
+                    $config['failure_transport']
+                ));
             }
 
-            $container->setAlias('messenger.failure_transports.default', 'messenger.transport.'.$config['failure_transport']);
+            $container->setAlias(
+                'messenger.failure_transports.default',
+                'messenger.transport.' . $config['failure_transport']
+            );
             $failureTransports[] = $config['failure_transport'];
         }
 
@@ -121,14 +148,18 @@ class MessengerConfigPass implements CompilerPassInterface
             $serializerId = $transport['serializer'] ?? 'messenger.default_serializer';
             $transportDefinition = (new Definition(TransportInterface::class))
                 ->setFactory([new Reference('messenger.transport_factory'), 'createTransport'])
-                ->setArguments([$transport['dsn'], $transport['options'] + ['transport_name' => $name], new Reference($serializerId)])
-                ->addTag('messenger.receiver', [
+                ->setArguments([$transport['dsn'], $transport['options'] + [
+                    'transport_name' => $name,
+                ], new Reference($serializerId)])
+                ->addTag(
+                    'messenger.receiver',
+                    [
                         'alias' => $name,
-                        'is_failure_transport' => \in_array($name, $failureTransports),
+                        'is_failure_transport' => \in_array($name, $failureTransports, true),
                     ]
                 )
             ;
-            $container->setDefinition($transportId = 'messenger.transport.'.$name, $transportDefinition);
+            $container->setDefinition($transportId = 'messenger.transport.' . $name, $transportDefinition);
             $senderAliases[$name] = $transportId;
 
             if (null !== $transport['retry_strategy']['service']) {
@@ -159,26 +190,38 @@ class MessengerConfigPass implements CompilerPassInterface
 
         foreach ($config['transports'] as $name => $transport) {
             if ($transport['failure_transport']) {
-                if (!isset($senderReferences[$transport['failure_transport']])) {
-                    throw new LogicException(sprintf('Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.', $transport['failure_transport']));
+                if (! isset($senderReferences[$transport['failure_transport']])) {
+                    throw new LogicException(sprintf(
+                        'Invalid Messenger configuration: the failure transport "%s" is not a valid transport or service id.',
+                        $transport['failure_transport']
+                    ));
                 }
             }
         }
 
-        $failureTransportReferencesByTransportName = array_map(function ($failureTransportName) use ($senderReferences) {
+        $failureTransportReferencesByTransportName = array_map(function ($failureTransportName) use (
+            $senderReferences
+        ) {
             return $senderReferences[$failureTransportName];
         }, $failureTransportsByName);
 
         $messageToSendersMapping = [];
         foreach ($config['routing'] as $message => $messageConfiguration) {
-            if ('*' !== $message && !class_exists($message) && !interface_exists($message, false)) {
-                throw new LogicException(sprintf('Invalid Messenger routing configuration: class or interface "%s" not found.', $message));
+            if ('*' !== $message && ! class_exists($message) && ! interface_exists($message, false)) {
+                throw new LogicException(sprintf(
+                    'Invalid Messenger routing configuration: class or interface "%s" not found.',
+                    $message
+                ));
             }
 
             // make sure senderAliases contains all senders
             foreach ($messageConfiguration['senders'] as $sender) {
-                if (!isset($senderReferences[$sender])) {
-                    throw new LogicException(sprintf('Invalid Messenger routing configuration: the "%s" class is being routed to a sender called "%s". This is not a valid transport or service id.', $message, $sender));
+                if (! isset($senderReferences[$sender])) {
+                    throw new LogicException(sprintf(
+                        'Invalid Messenger routing configuration: the "%s" class is being routed to a sender called "%s". This is not a valid transport or service id.',
+                        $message,
+                        $sender
+                    ));
                 }
             }
 
@@ -199,8 +242,10 @@ class MessengerConfigPass implements CompilerPassInterface
         $container->getDefinition('messenger.retry_strategy_locator')
             ->replaceArgument(0, $transportRetryReferences);
 
-
-        $failureTransportsByTransportNameServiceLocator = ServiceLocatorTagPass::register($container, $failureTransportReferencesByTransportName);
+        $failureTransportsByTransportNameServiceLocator = ServiceLocatorTagPass::register(
+            $container,
+            $failureTransportReferencesByTransportName
+        );
         $container->getDefinition('messenger.failure.send_failed_message_to_failure_transport_listener')
             ->replaceArgument(0, $failureTransportsByTransportNameServiceLocator);
 
@@ -220,13 +265,18 @@ class MessengerConfigPass implements CompilerPassInterface
             $container->removeDefinition('console.command.messenger_failed_messages_remove');
             */
             // Workaround
-            $container->getDefinition('console.command.messenger_failed_messages_retry')->setClass(FailedMessagesRetryDummyCommand::class)->replaceArgument(0, null);
-            $container->getDefinition('console.command.messenger_failed_messages_show')->setClass(FailedMessagesShowDummyCommand::class);
-            $container->getDefinition('console.command.messenger_failed_messages_remove')->setClass(FailedMessagesRemoveDummyCommand::class);
+            $container->getDefinition('console.command.messenger_failed_messages_retry')
+                ->setClass(FailedMessagesRetryDummyCommand::class)->replaceArgument(0, null);
+            $container->getDefinition('console.command.messenger_failed_messages_show')
+                ->setClass(FailedMessagesShowDummyCommand::class);
+            $container->getDefinition('console.command.messenger_failed_messages_remove')
+                ->setClass(FailedMessagesRemoveDummyCommand::class);
         }
 
         if (false === $config['reset_on_message']) {
-            throw new LogicException('The "framework.messenger.reset_on_message" configuration option can be set to "true" only. To prevent services resetting after each message you can set the "--no-reset" option in "messenger:consume" command.');
+            throw new LogicException(
+                'The "framework.messenger.reset_on_message" configuration option can be set to "true" only. To prevent services resetting after each message you can set the "--no-reset" option in "messenger:consume" command.'
+            );
         }
 
         /*
@@ -238,7 +288,5 @@ class MessengerConfigPass implements CompilerPassInterface
             $container->getDefinition('console.command.messenger_consume_messages')->replaceArgument(5, null);
             $container->removeDefinition('messenger.listener.reset_services');
         }*/
-
     }
-
 }

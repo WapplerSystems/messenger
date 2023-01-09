@@ -23,6 +23,7 @@
 	"suggest": {
 	},
 	"require-dev": {
+		"symplify/easy-coding-standard": "^11.1"
 	},
 	"autoload": {
 		"psr-4": {
@@ -33,5 +34,17 @@
 		"typo3/cms": {
 			"extension-key": "messenger"
 		}
+	},
+	"config": {
+		"allow-plugins": {
+			"typo3/class-alias-loader": false,
+			"typo3/cms-composer-installers": false
+		}
+	},
+	"scripts": {
+		"check-style": "ecs check --ansi",
+		"fix-style": [
+			"ecs check --fix --ansi"
+		]
 	}
 }
