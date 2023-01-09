@@ -37,8 +37,9 @@ use Symfony\Component\Messenger\Transport\Serialization\Serializer;
 use Symfony\Component\Messenger\Transport\Serialization\SerializerInterface;
 use Symfony\Component\Messenger\Transport\Sync\SyncTransportFactory;
 use Symfony\Component\Messenger\Transport\TransportFactory;
-use WapplerSystems\Messenger\Middleware\ValidationMiddleware;
+use TYPO3\CMS\Core\Log\Logger;
 use TYPO3\CMS\Core\Log\LogManager;
+use WapplerSystems\Messenger\Middleware\ValidationMiddleware;
 
 return static function (ContainerConfigurator $container) {
 
@@ -47,6 +48,7 @@ return static function (ContainerConfigurator $container) {
 
         // Logger
         ->set('messenger.logger')
+        ->class(Logger::class)
         ->factory([service(LogManager::class), 'getLogger'])
         ->share(false)
 
